@@ -21,7 +21,7 @@ Powershell Module to enhance host display see [Help Page](https://swisspowershel
 	![Write-Line Example 4](https://swisspowershell.files.wordpress.com/2015/12/write-line_example4.png)
 
 ## Add-ChoiceItem
-  Create Choice-Item to use with Write-ChoiceMenu
+  Create a Choice Item to use with Write-ChoiceMenu
   * Create a Menu item that return a string
 
 ### Examples
