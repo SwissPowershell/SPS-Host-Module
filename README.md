@@ -6,7 +6,7 @@ Powershell Module to enhance host display see [Help Page](https://swisspowershel
 * Read-Line
 
 ## Write-Line
-  A colored write-host
+  A colored and/or bordered write-host
   * Display text in the host with a colored zone
   * Display text in the host with colored border
 
