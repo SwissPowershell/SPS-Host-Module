@@ -1,4 +1,4 @@
-# SPS Host Module
+# SwissPowerShell Host Module
 Powershell Module to enhance host display see [Help Page](https://swisspowershell.wordpress.com/revisited-host-module/)  
 * Write-Line
 * Write-ChoiceMenu
