@@ -4,7 +4,7 @@ Powershell Module to enhance host display
 * Write-Line
 * Write-ChoiceMenu
   * Add-ChoiceItem
-* Ask-User
+* Read-Line
 
 ## Write-Line
   A colored write-host
