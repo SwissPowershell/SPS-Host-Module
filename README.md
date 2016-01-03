@@ -1,6 +1,5 @@
 # SPS Host Module
-[Help Page](https://swisspowershell.wordpress.com/revisited-host-module/)  
-Powershell Module to enhance host display
+Powershell Module to enhance host display see [Help Page](https://swisspowershell.wordpress.com/revisited-host-module/)  
 * Write-Line
 * Write-ChoiceMenu
   * Add-ChoiceItem
