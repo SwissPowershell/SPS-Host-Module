@@ -299,25 +299,31 @@
             $CloseList = Find-AllChar -Message $Message -Char $CloseChar
             #Filter Open Close
             $NewOpened,$NewClosed = @(),@()
-            
-            if (($OpenList.Count -gt 0) -and ($CloseList.count -gt 0)){
-                $OpenedCount,$ClosedCount,$TempClosedCount = 0,0,0
-                for($i = 0;$i -le $CloseList[$CloseList.count - 1];$i ++){
-                    if ($i -eq $OpenList[$OpenedCount]){
-                        $OpenedCount ++
-                        if ($OpenedCount -eq ($ClosedCount + 1)){
-                            $NewOpened += $i
+            Try {
+                if (($OpenList.Count -gt 0) -and ($CloseList.count -gt 0)){
+                    $OpenedCount,$ClosedCount,$TempClosedCount = 0,0,0
+                    for($i = 0;$i -le $CloseList[$CloseList.count - 1];$i ++){
+                        Try {
+                            if ($i -eq $OpenList[$OpenedCount]){
+                                $OpenedCount ++
+                                if ($OpenedCount -eq ($ClosedCount + 1)){
+                                    $NewOpened += $i
+                                }
+                            }
+                        }Catch{}
+                        if ($i -eq $CloseList[$TempClosedCount]){
+                            $TempClosedCount ++
+                            if ($OpenedCount -gt $ClosedCount){
+                                $ClosedCount ++
+                                if ($ClosedCount -eq $OpenedCount){$NewClosed += $i}
+                            }
                         }
                     }
-                    if ($i -eq $CloseList[$TempClosedCount]){
-                        $TempClosedCount ++
-                        if ($OpenedCount -gt $ClosedCount){
-                            $ClosedCount ++
-                            if ($ClosedCount -eq $OpenedCount){$NewClosed += $i}
-                        }
-                    }
+                    Write-Output $NewOpened,$NewClosed
                 }
-                Write-Output $NewOpened,$NewClosed
+            }Catch{
+                #error poping when a close in inserted into the colored zone string
+                Write-Warning "Unhandled exception $($_.Exception) $($_.InvocationInfo.PositionMessage)"
             }
         }
         $Lines,$LinesInfo= @(),@()
@@ -357,21 +363,22 @@
             }Else{
                 $StringLen = $MyString.Length
             }
-
+            $SpaceBefore = $Null
+            $SpaceAfter = $Null
             Switch ($Align){
                     "Center"{
                             if ($StringLen -lt $MaxLength) {
                                 [Int32]$SpaceLenBefore = ($MaxLength - $StringLen) / 2
                                 [Int32]$SpaceLenAfter = ($MaxLength - $StringLen - $SpaceLenBefore)
                                 If ($SpaceLenBefore -gt 0){
-                                    $SpaceBefore = " " * $SpaceLenBefore
+                                    $SpaceBefore = ' ' * $SpaceLenBefore
                                 }Else{
-                                    $SpaceBefore = ""
+                                    $SpaceBefore = ''
                                 }
                                 if ($SpaceLenAfter -gt 0){
-                                    $SpaceAfter = " " * $SpaceLenAfter
+                                    $SpaceAfter = ' ' * $SpaceLenAfter
                                 }Else{
-                                    $SpaceAfter = ""
+                                    $SpaceAfter = ''
                                 }
                             }
                         }
@@ -380,72 +387,76 @@
                                 [Int32]$SpaceLenBefore = ($MaxLength - $StringLen)
                                 $SpaceAfter = ""
                                 if ($SpaceLenBefore -gt 0){
-                                    $SpaceBefore = " " * $SpaceLenBefore
+                                    $SpaceBefore = ' ' * $SpaceLenBefore
                                 }Else{
-                                    $SpaceBefore = ""
+                                    $SpaceBefore = ''
                                 }
                             }
                         }
                     "Left" {
                         if ($StringLen -lt $MaxLength) {
                                 [Int32]$SpaceLenAfter = ($MaxLength - $StringLen)
-                                $SpaceBefore = ""
+                                $SpaceBefore = ''
                                 if ($SpaceLenAfter -gt 0){
-                                    $SpaceAfter = " " * $SpaceLenAfter
+                                    $SpaceAfter = ' ' * $SpaceLenAfter
                                 }Else{
-                                    $SpaceAfter = ""
+                                    $SpaceAfter = ''
                                 }                        
                         }
                     }
             }
             Write-Host $SpaceBefore -NoNewline
-            if (($Line.OpenList.count -gt 0) -and ($line.CloseList.count -gt 0)) {
-                Do {
-                    if ($HideChar){
-                        $StartDefaultColor = $Pos
-                        $DefaultColorLen = $Line.OpenList[$Index] - $Pos
-                        $StartAltColor = $Line.OpenList[$Index] + 1
-                        $AltColorLen = ($Line.CloseList[$Index] - $Line.OpenList[$Index]) - 1
-                    }Else{
-                        $StartDefaultColor = $Pos
-                        $DefaultColorLen = ($Line.OpenList[$Index] - $Pos) + 1
-
-                        $StartAltColor = $Line.OpenList[$Index] + 1
-                        $AltColorLen = ($Line.CloseList[$Index] - $Line.OpenList[$Index]) - 1
-                    }
-                    $DefaultColorMessage = $MyString.Substring($StartDefaultColor,$DefaultColorLen)
-                    $AltColorMessage = $MyString.Substring($StartAltColor,$AltColorLen)
-
-                    Write-Host $DefaultColorMessage -NoNewline -ForegroundColor $DefaultColor
-                    Write-Host $AltColorMessage -NoNewline -ForegroundColor $AltColor
-                    if ($HideChar){
-                        $Pos = $Line.CloseList[$Index] + 1
-                    }Else{
-                        $Pos = $Line.CloseList[$Index]
-                    }
-                    $Index = $Index + 1
-                    if ($Index -ge $Line.OpenList.Count){
+            Try {
+                if (($Line.OpenList.count -gt 0) -and ($line.CloseList.count -gt 0)) {
+                    Do {
                         if ($HideChar){
-                            $StartDefaultColor = $Line.CloseList[$Index - 1] + 1
-                            $DefaultColorLen = $MyString.Length - ($Line.CloseList[$Index - 1] + 1)
+                            $StartDefaultColor = $Pos
+                            $DefaultColorLen = $Line.OpenList[$Index] - $Pos
+                            $StartAltColor = $Line.OpenList[$Index] + 1
+                            $AltColorLen = ($Line.CloseList[$Index] - $Line.OpenList[$Index]) - 1
                         }Else{
-                            $StartDefaultColor = $Line.CloseList[$Index - 1]
-                            $DefaultColorLen = $MyString.Length - $Line.CloseList[$Index - 1]
+                            $StartDefaultColor = $Pos
+                            $DefaultColorLen = ($Line.OpenList[$Index] - $Pos) + 1
+
+                            $StartAltColor = $Line.OpenList[$Index] + 1
+                            $AltColorLen = ($Line.CloseList[$Index] - $Line.OpenList[$Index]) - 1
                         }
-                        $DefaultColorMessage = $MyString.SubString($StartDefaultColor,$DefaultColorLen)
+                        $DefaultColorMessage = $MyString.Substring($StartDefaultColor,$DefaultColorLen)
+                        $AltColorMessage = $MyString.Substring($StartAltColor,$AltColorLen)
+
                         Write-Host $DefaultColorMessage -NoNewline -ForegroundColor $DefaultColor
-                        $ExitLoop = $True
+                        Write-Host $AltColorMessage -NoNewline -ForegroundColor $AltColor
+                        if ($HideChar){
+                            $Pos = $Line.CloseList[$Index] + 1
+                        }Else{
+                            $Pos = $Line.CloseList[$Index]
+                        }
+                        $Index = $Index + 1
+                        if ($Index -ge $Line.OpenList.Count){
+                            if ($HideChar){
+                                $StartDefaultColor = $Line.CloseList[$Index - 1] + 1
+                                $DefaultColorLen = $MyString.Length - ($Line.CloseList[$Index - 1] + 1)
+                            }Else{
+                                $StartDefaultColor = $Line.CloseList[$Index - 1]
+                                $DefaultColorLen = $MyString.Length - $Line.CloseList[$Index - 1]
+                            }
+                            $DefaultColorMessage = $MyString.SubString($StartDefaultColor,$DefaultColorLen)
+                            Write-Host $DefaultColorMessage -NoNewline -ForegroundColor $DefaultColor
+                            $ExitLoop = $True
+                        }
                     }
+                    Until ($ExitLoop)
+                }Else{
+                    Write-Host $MyString -NoNewline -ForegroundColor $DefaultColor
                 }
-                Until ($ExitLoop)
-            }Else{
-                Write-Host $MyString -NoNewline -ForegroundColor $DefaultColor
+            }Catch{
+                #error poping when a close in inserted into the colored zone string
+                Write-Warning "Unhandled exception $($_.Exception) $($_.InvocationInfo.PositionMessage)"
             }
             Write-Host $SpaceAfter -NoNewline
         }
         if ($Borders){
             Write-Host "$($Borders.TopLine)" -ForegroundColor $BorderColor
-            #Write-Host "$($Borders.EmptyLine)" -ForegroundColor $BorderColor
         }
         ForEach ($Line in $Lines){
             if ($Borders) {
@@ -460,7 +471,6 @@
             }
         }
         if ($Borders){
-            #Write-Host "$($Borders.EmptyLine)" -ForegroundColor $BorderColor
             Write-Host "$($Borders.BottomLine)" -ForegroundColor $BorderColor
         }
 
@@ -469,6 +479,8 @@
     Change-UiSize -MaxLength $($MaxLength + 4)
     if ($Border){
         $Borders = Build-Border -BorderFormat $BorderFormat -Length $MaxLength
+    }Else{
+        $Borders = $Null
     }
     Write-Content -Lines $LinesInfo -Borders $Borders -DefaultColor $DefaultColor -AltColor $AltColor -BorderColor $BorderColor -Align $Align -MaxLength $MaxLength -HideChar $HideChar -NoNewLine $NoNewLine
 
