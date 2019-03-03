@@ -12,7 +12,7 @@
 RootModule = 'SPS_Host.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0'
+ModuleVersion = '2.0'
 
 # ID used to uniquely identify this module
 GUID = 'a39181c5-aa25-4466-9b14-cfbe4dc09ea8'
