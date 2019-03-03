@@ -47,6 +47,8 @@ Function Write-Line {
                 LightShade
                 MediumShade
                 DarkShade
+    .PARAMETER BooleanFalseColor
+        Specifies the color for colored string that is false
     .PARAMETER NoNewLine
         Specifies that the content displayed in the console does not end with a newline character.
     .INPUTS
@@ -79,72 +81,84 @@ Function Write-Line {
         )]
         [AllowEmptyString()]
         [String]
-            $Message,
+            ${Message},
 
         [Char]
-            $OpenChar="[",
+            ${OpenChar}='[',
         
         [ValidateScript({if ($_ -ne $OpenChar){$True}Else{Throw "CloseChar '$_' can't be same as OpenChar '$OpenChar'"}})]
         [Char]
-            $CloseChar="]",
+            ${CloseChar}=']',
 
         [Switch]
-            $HideChar,
+            ${HideChar},
 
-        [ValidateSet("Left","Center","Right")]
+        [ValidateSet('Left','Center','Right')]
         [String]
-            $Align = "Center",
+            ${Align} = 'Left',
 
         [ConsoleColor]
-            $DefaultColor="Cyan",
+            ${DefaultColor}='Cyan',
 
         [ConsoleColor]
-            $AltColor="Green",
-        
+            ${AltColor}='Green',
+
         [ConsoleColor]
-            $BorderColor = "Magenta",
+            ${BooleanFalseColor} = 'Red',
+
+        [ConsoleColor]
+            ${BorderColor} = 'Magenta',
 
         [Switch]
-            $Border,
+            ${Border},
 
-        [ValidateSet("Single","SingleBold","Double","Mixed1","Mixed2","HalfBlock","Block","LightShade","MediumShade","DarkShade")]
+        [ValidateSet('Single','SingleBold','Double','Mixed1','Mixed2','HalfBlock','Block','LightShade','MediumShade','DarkShade')]
         [String]
-            $BorderFormat = "Double",
+            ${BorderFormat} = 'Double',
 
         [Switch]
-            $NoNewLine
+            ${NoNewLine}
         )
-    Function Change-UiSize {
-        Param($MaxLength)
-        if ($Host.Name -eq "ConsoleHost"){
+    Function Set-WLUiSize {
+        Param(
+            [ValidateScript({$_ -gt 0})]
+            [Int32]
+                ${MaxLength}
+            )
+        if ($Host.Name -eq 'ConsoleHost'){
             #only change if in a console
-            $pshost = get-host
-            $pswindow = $pshost.ui.rawui
+            $PSHost = get-host
+            $PSWindow = $PSHost.ui.rawui
             #Change BufferSize
-            $Currentsize = $pswindow.buffersize
+            $Currentsize = $PSWindow.buffersize
             if ($CurrentSize.Width -le $MaxLength){
-                Write-Verbose "Changing Host Buffer size"
+                Write-Verbose 'Changing Host Buffer size'
                 $NewSize = $Currentsize
                 $NewSize.width = $MaxLength
-                $pswindow.buffersize = $NewSize
+                $PSWindow.buffersize = $NewSize
             }
             #Change WindowsSize
-            $CurrentSize = $pswindow.windowsize
+            $CurrentSize = $PSWindow.windowsize
             if ($CurrentSize.Width -le $MaxLength){
-                Write-Verbose "Changing Host Windows size"
+                Write-Verbose 'Changing Host Windows size'
                 $NewSize = $Currentsize
                 $NewSize.width = $MaxLength
-                $pswindow.windowsize = $NewSize
+                $PSWindow.windowsize = $NewSize
             }
         }
     }
-    Function Build-Border {
-        Param([String]$BorderFormat,[Int]$Length)
-        Function Get-BorderFormat {
-            Param([String]$Format)
-
-        Switch ($Format){
-            "Single" {
+    Function Get-WLBorder {
+        Param(
+            [ValidateSet('Single','SingleBold','Double','Mixed1','Mixed2','HalfBlock','Block','LightShade','MediumShade','DarkShade')]
+            [String]
+                ${BorderFormat} = 'Double',
+            [Int32]
+                ${Length},
+            [Int32]
+                ${LeadingSpace} = 2
+             )
+        Switch ($BorderFormat){
+            'Single' {
                 $TopLeft     = [char]0x250c
                 $HLineTop    = [char]0x2500
                 $TopRight    = [char]0x2510
@@ -154,7 +168,7 @@ Function Write-Line {
                 $BottomRight = [char]0x2518
                 $HLineBottom = [char]0x2500
             }
-            "SingleBold" {
+            'SingleBold' {
                 $TopLeft     = [char]0x250f
                 $HLine       = [char]0x2501
                 $TopRight    = [char]0x2513
@@ -162,7 +176,7 @@ Function Write-Line {
                 $BottomLeft  = [char]0x2517
                 $BottomRight = [char]0x251b      
             }
-            "Double" {
+            'Double' {
                 $TopLeft     = [char]0x2554
                 $HLineTop    = [char]0x2550
                 $TopRight    = [char]0x2557
@@ -172,7 +186,7 @@ Function Write-Line {
                 $BottomRight = [char]0x255d
                 $HLineBottom = [char]0x2550          
             }
-            "Mixed1" {
+            'Mixed1' {
                 $TopLeft     = [char]0x2552
                 $HLineTop    = [char]0x2550
                 $TopRight    = [char]0x2555
@@ -182,7 +196,7 @@ Function Write-Line {
                 $BottomRight = [char]0x255b            
                 $HLineBottom = [char]0x2550                
             }
-            "Mixed2" {
+            'Mixed2' {
                 $TopLeft     = [char]0x2553
                 $HLineTop    = [char]0x2500
                 $TopRight    = [char]0x2556
@@ -192,7 +206,7 @@ Function Write-Line {
                 $BottomRight = [char]0x255c
                 $HLineBottom = [char]0x2500            
             }
-            "HalfBlock" {
+            'HalfBlock' {
                 $TopLeft     = [char]0x258c
                 $HLineTop    = [char]0x2580
                 $TopRight    = [char]0x2590
@@ -202,7 +216,7 @@ Function Write-Line {
                 $BottomRight = [char]0x2590
                 $HLineBottom = [char]0x2584            
             }
-            "Block" {
+            'Block' {
                 $TopLeft     = [char]0x2588
                 $HLineTop    = [char]0x2588
                 $TopRight    = [char]0x2588
@@ -212,7 +226,7 @@ Function Write-Line {
                 $BottomRight = [char]0x2588
                 $HLineBottom = [char]0x2588            
             }
-            "LightShade" {
+            'LightShade' {
                 $TopLeft     = [char]0x2591
                 $HLineTop    = [char]0x2591
                 $TopRight    = [char]0x2591
@@ -222,7 +236,7 @@ Function Write-Line {
                 $BottomRight = [char]0x2591
                 $HLineBottom = [char]0x2591            
             }
-            "MediumShade" {
+            'MediumShade' {
                 $TopLeft     = [char]0x2592
                 $HLineTop    = [char]0x2592
                 $TopRight    = [char]0x2592
@@ -232,7 +246,7 @@ Function Write-Line {
                 $BottomRight = [char]0x2592
                 $HLineBottom = [char]0x2592            
             }
-            "DarkShade" {
+            'DarkShade' {
                 $TopLeft     = [char]0x2593
                 $HLineTop    = [char]0x2593
                 $TopRight    = [char]0x2593
@@ -242,7 +256,7 @@ Function Write-Line {
                 $BottomRight = [char]0x2593
                 $HLineBottom = [char]0x2593            
             }
-             Default {
+            Default {
                 $TopLeft     = [char]0x2554
                 $HLineTop    = [char]0x2550
                 $TopRight    = [char]0x2557
@@ -263,145 +277,210 @@ Function Write-Line {
             BottomRight = $BottomRight
             HLineBottom = $HLineBottom
         }
-        Write-Output $Borders
-    }
-        $LeadingSpace = 2
-        $Borders = Get-BorderFormat -Format $BorderFormat
         $Borders = New-Object PSObject -Property @{
-            TopLine = "$($Borders.TopLeft)$([String]$Borders.HLineTop * ($Length + $LeadingSpace))$($Borders.TopRight)"
-            EmptyLine = "$($Borders.VLineLeft)$(" " * ($Length + $LeadingSpace))$($Borders.VLineRight)"
-            BottomLine = "$($Borders.BottomLeft)$([String]$Borders.HLineBottom * ($Length + $LeadingSpace))$($Borders.BottomRight)"
+            TopLine = "$($Borders.TopLeft)$(($Borders.HLineTop).ToString() * ($Length + $LeadingSpace))$($Borders.TopRight)"
+            EmptyLine = "$($Borders.VLineLeft)$(' ' * ($Length + $LeadingSpace))$($Borders.VLineRight)"
+            BottomLine = "$($Borders.BottomLeft)$($Borders.HLineBottom.ToString() * ($Length + $LeadingSpace))$($Borders.BottomRight)"
             VlineLeft = $Borders.VLineLeft
             VLineRight = $Borders.VLineRight
         }
         Write-Output $Borders
     }
-    Function Build-Content {
-        Param($Message,$OpenChar,$CloseChar,$HideChar)
-        Function Filter-OpenClose {
-            Param([String]$Message,[Char]$OpenChar,[Char]$CloseChar)
-            Function Find-AllChar {
-                Param([String]$Message,[Char]$Char)
-                $StringArray=$Message.Split($Char)
-                $PosArray = @()
-                $Pos = 0
-                ForEach($String in $StringArray){
-                    $Pos = $String.Length + $Pos
-                    if ($Pos -lt ($Message.Length)) {
-                        $PosArray += $Pos
+    Function Get-MessageContent {
+        Param(
+            [String]
+                ${Message},
+            [Char]
+                ${OpenChar},
+            [Char]
+                ${CloseChar},
+            [Boolean]
+                ${HideChar}
+            )
+        Function Get-OpenCloseList {
+            Param(
+                [String]
+                    ${Message},
+                [Char]
+                    ${OpenChar},
+                [Char]
+                    ${CloseChar}
+                )
+            Function Get-AllChar {
+                Param([String] $Message, [Char] $Char)
+                    $FindChar = Select-String -InputObject $Message -Pattern "\$($Char)" -AllMatches
+                    if ($FindChar -ne $Null) {
+                        Return $FindChar.Matches.Index
+                    }Else{
+                        Return $null
                     }
-                    $Pos = $Pos + 1
-                }
-                Write-Output $PosArray
             }
             #Find all char
-            $OpenList = Find-AllChar -Message $Message -Char $OpenChar
-            $CloseList = Find-AllChar -Message $Message -Char $CloseChar
+            $OpenList = @(Get-AllChar -Message $Message -Char $OpenChar)
+            $CloseList = @(Get-AllChar -Message $Message -Char $CloseChar)
             #Filter Open Close
-            $NewOpened,$NewClosed = @(),@()
-            
+            $NewOpened,$NewClosed = [System.Collections.ArrayList]@(),[System.Collections.ArrayList]@()
             if (($OpenList.Count -gt 0) -and ($CloseList.count -gt 0)){
                 $OpenedCount,$ClosedCount,$TempClosedCount = 0,0,0
+                #Go trough all char until last close
                 for($i = 0;$i -le $CloseList[$CloseList.count - 1];$i ++){
-                    if ($i -eq $OpenList[$OpenedCount]){
-                        $OpenedCount ++
-                        if ($OpenedCount -eq ($ClosedCount + 1)){
-                            $NewOpened += $i
+                    if ($OpenList.Count -gt $Openedcount) {
+                        if ($i -eq $OpenList[$OpenedCount]){
+                            #$i is an open char 
+                            $OpenedCount ++
+                            if ($OpenedCount -eq ($ClosedCount + 1)){
+                                #this open is related to a close
+                                $NewOpened.add($i) | Out-Null
+                            }
                         }
                     }
                     if ($i -eq $CloseList[$TempClosedCount]){
                         $TempClosedCount ++
                         if ($OpenedCount -gt $ClosedCount){
                             $ClosedCount ++
-                            if ($ClosedCount -eq $OpenedCount){$NewClosed += $i}
+                            if ($ClosedCount -eq $OpenedCount){
+                                $NewClosed.add($i) | Out-Null
+                            }
                         }
                     }
+                }
+                if ($NewOpened.Count -gt $NewClosed.Count){
+                    #More open than close
+                    $NewOpened = $NewOpened[0..$($NewOpened.Count - 2)]
+                }
+                if ($NewClosed.Count -gt $NewOpened.Count){
+                    #More open than close
+                    $NewClosed = $NewClosed[0..$($NewClosed.Count - 2)]
                 }
                 Write-Output $NewOpened,$NewClosed
             }
         }
-        $Lines,$LinesInfo= @(),@()
+        $LinesInfo= [System.Collections.ArrayList]@()
         $MaxLength = 0
-        $Lines += $Message -split "\r\n"
+        $Lines = $Message -split '\r\n'
         ForEach ($Line in $Lines) {
             #Getting Open and Close Position
-            $OpenedList,$ClosedList = Filter-OpenClose -Message $Line -OpenChar $OpenChar -CloseChar $CloseChar
-            if ($HideChar){
+            $OpenedList,$ClosedList = Get-OpenCloseList -Message $Line -OpenChar $OpenChar -CloseChar $CloseChar
+            if ($HideChar -eq $True){
                 #Remove char from line length
                 $LineLength = $Line.Length - $OpenedList.Count - $ClosedList.Count 
             }Else{
                 $LineLength = $Line.Length
-            }
+            } 
             $LineInfo = New-Object PSObject -Property @{
                 Line = $Line
                 OpenList = $OpenedList
                 CloseList = $ClosedList
                 LineLength = $LineLength
             }
-            $LinesInfo += $LineInfo
+            $LinesInfo.Add($LineInfo) | Out-Null
             if ($LineLength -gt $MaxLength) {
                 $MaxLength = $LineLength
             }
         }
         Write-Output $LinesInfo,$MaxLength
     }
-    Function Write-Content {
-        Param([PSObject]$Lines,[PSObject]$Borders,[ConsoleColor]$DefaultColor,[ConsoleColor]$AltColor,[ConsoleColor]$BorderColor,[Int32]$MaxLength,[Boolean]$HideChar,[Boolean]$NoNewLine)
-        Function Write-Colored {
-            Param($Line,$DefaultColor,$AltColor,$Align,$MaxLength,$HideChar)
+    Function Write-MessageContent {
+        Param(
+            [PSObject]
+                ${Lines},
+            [PSObject]
+                ${Borders},
+            [ConsoleColor]
+                ${DefaultColor},
+            [ConsoleColor]
+                ${AltColor},
+            [ConsoleColor]
+                ${BorderColor},
+            [Int32]
+                ${MaxLength},
+            [Boolean]
+                ${HideChar},
+            [Boolean]
+                ${NoNewLine}
+            )
+        Function Write-ColoredPart {
+            Param(
+                    ${Line},
+                [ConsoleColor]
+                    ${DefaultColor},
+                [ConsoleColor]                    
+                    ${AltColor},
+                [ValidateSet('Left','Center','Right')]
+                [String]
+                    ${Align} = 'Center',
+                [Int32]
+                    ${MaxLength},
+                [Boolean]
+                    ${HideChar}
+            )
             $Pos = 0
             $Index = 0
             [String]$MyString = $Line.Line
-            if ($HideChar){
+            if ($HideChar -eq $True){
                 $StringLen = $MyString.Length - $Line.OpenList.Count - $Line.CloseList.Count
             }Else{
                 $StringLen = $MyString.Length
             }
-
+            $SpaceAfter = ''
+            $SpaceBefore = ''
             Switch ($Align){
-                    "Center"{
+                    'Center'{
                             if ($StringLen -lt $MaxLength) {
                                 [Int32]$SpaceLenBefore = ($MaxLength - $StringLen) / 2
                                 [Int32]$SpaceLenAfter = ($MaxLength - $StringLen - $SpaceLenBefore)
                                 If ($SpaceLenBefore -gt 0){
-                                    $SpaceBefore = " " * $SpaceLenBefore
+                                    $SpaceBefore = ' ' * $SpaceLenBefore
                                 }Else{
-                                    $SpaceBefore = ""
+                                    $SpaceBefore = ''
                                 }
                                 if ($SpaceLenAfter -gt 0){
-                                    $SpaceAfter = " " * $SpaceLenAfter
+                                    $SpaceAfter = ' ' * $SpaceLenAfter
                                 }Else{
-                                    $SpaceAfter = ""
+                                    $SpaceAfter = ''
                                 }
                             }
                         }
-                    "Right" {
+                    'Right' {
                             if ($StringLen -lt $MaxLength) {
                                 [Int32]$SpaceLenBefore = ($MaxLength - $StringLen)
                                 $SpaceAfter = ""
                                 if ($SpaceLenBefore -gt 0){
-                                    $SpaceBefore = " " * $SpaceLenBefore
+                                    $SpaceBefore = ' ' * $SpaceLenBefore
                                 }Else{
-                                    $SpaceBefore = ""
+                                    $SpaceBefore = ''
                                 }
                             }
                         }
-                    "Left" {
+                    'Left' {
                         if ($StringLen -lt $MaxLength) {
                                 [Int32]$SpaceLenAfter = ($MaxLength - $StringLen)
-                                $SpaceBefore = ""
+                                $SpaceBefore = ''
                                 if ($SpaceLenAfter -gt 0){
-                                    $SpaceAfter = " " * $SpaceLenAfter
+                                    $SpaceAfter = ' ' * $SpaceLenAfter
                                 }Else{
-                                    $SpaceAfter = ""
+                                    $SpaceAfter = ''
                                 }                        
+                        }
+                    }
+                    default {
+                        if ($StringLen -lt $MaxLength) {
+                            [Int32]$SpaceLenAfter = ($MaxLength - $StringLen)
+                            $SpaceBefore = ''
+                            if ($SpaceLenAfter -gt 0){
+                                $SpaceAfter = ' ' * $SpaceLenAfter
+                            }Else{
+                                $SpaceAfter = ''
+                            }                        
                         }
                     }
             }
             Write-Host $SpaceBefore -NoNewline
+            #the count should be equal
             if (($Line.OpenList.count -gt 0) -and ($line.CloseList.count -gt 0)) {
+                $ExitLoop = $false
                 Do {
-                    if ($HideChar){
+                    if ($HideChar -eq $true){
                         $StartDefaultColor = $Pos
                         $DefaultColorLen = $Line.OpenList[$Index] - $Pos
                         $StartAltColor = $Line.OpenList[$Index] + 1
@@ -413,11 +492,24 @@ Function Write-Line {
                         $StartAltColor = $Line.OpenList[$Index] + 1
                         $AltColorLen = ($Line.CloseList[$Index] - $Line.OpenList[$Index]) - 1
                     }
-                    $DefaultColorMessage = $MyString.Substring($StartDefaultColor,$DefaultColorLen)
-                    $AltColorMessage = $MyString.Substring($StartAltColor,$AltColorLen)
+                    if ($DefaultColorLen -gt 0){
+                        $DefaultColorMessage = $MyString.Substring($StartDefaultColor,$DefaultColorLen)
+                    }Else{
+                        $DefaultColorMessage = ''
+                    }
+                    if ($AltColorLen -gt 0){
+                        $AltColorMessage = $MyString.Substring($StartAltColor,$AltColorLen)
+                    }Else{
+                        $AltColorMessage = ''
+                    }
+                    
 
                     Write-Host $DefaultColorMessage -NoNewline -ForegroundColor $DefaultColor
-                    Write-Host $AltColorMessage -NoNewline -ForegroundColor $AltColor
+                    if (($AltColorMessage -eq $False) -or ($AltColorMessage -eq '0')) {
+                        Write-Host $AltColorMessage -NoNewline -ForegroundColor $BooleanFalseColor
+                    }Else{
+                        Write-Host $AltColorMessage -NoNewline -ForegroundColor $AltColor
+                    }
                     if ($HideChar){
                         $Pos = $Line.CloseList[$Index] + 1
                     }Else{
@@ -443,35 +535,35 @@ Function Write-Line {
             }
             Write-Host $SpaceAfter -NoNewline
         }
-        if ($Borders){
+        if ($Borders-notlike $Null){
             Write-Host "$($Borders.TopLine)" -ForegroundColor $BorderColor
-            #Write-Host "$($Borders.EmptyLine)" -ForegroundColor $BorderColor
         }
         ForEach ($Line in $Lines){
-            if ($Borders) {
+            if ($Borders-notlike $Null) {
                 Write-Host "$($Borders.VLineLeft) " -ForegroundColor $BorderColor -NoNewline
             }
-            Write-Colored -Line $Line -DefaultColor $DefaultColor -AltColor $AltColor -Align $Align -MaxLength $MaxLength -HideChar $HideChar
-            if ($Borders) {
+            Write-ColoredPart -Line $Line -DefaultColor $DefaultColor -AltColor $AltColor -Align $Align -MaxLength $MaxLength -HideChar $HideChar
+            if ($Borders -notlike $Null) {
                 Write-Host " $($Borders.VLineRight)" -ForegroundColor $BorderColor -NoNewline
             }
             if (-Not $NoNewLine){
                 Write-Host $Null
             }
         }
-        if ($Borders){
-            #Write-Host "$($Borders.EmptyLine)" -ForegroundColor $BorderColor
+        if ($Borders -notlike $Null){
             Write-Host "$($Borders.BottomLine)" -ForegroundColor $BorderColor
         }
 
     }
-    $LinesInfo,$MaxLength = Build-Content -Message $Message -OpenChar $OpenChar -CloseChar $CloseChar -HideChar $HideChar
-    Change-UiSize -MaxLength $($MaxLength + 4)
+    $LinesInfo,$MaxLength = Get-MessageContent -Message $Message -OpenChar $OpenChar -CloseChar $CloseChar -HideChar $HideChar
+    Set-WLUiSize -MaxLength $($MaxLength + 4)
     if ($Border){
-        $Borders = Build-Border -BorderFormat $BorderFormat -Length $MaxLength
+        $Borders = Get-WLBorder -BorderFormat $BorderFormat -Length $MaxLength
+    }Else{
+        $Borders = $Null
     }
-    Write-Content -Lines $LinesInfo -Borders $Borders -DefaultColor $DefaultColor -AltColor $AltColor -BorderColor $BorderColor -Align $Align -MaxLength $MaxLength -HideChar $HideChar -NoNewLine $NoNewLine
-
+    Write-MessageContent -Lines $LinesInfo -Borders $Borders -DefaultColor $DefaultColor -AltColor $AltColor -BorderColor $BorderColor -Align $Align -MaxLength $MaxLength -HideChar $HideChar -NoNewLine $NoNewLine
+    #Write-Output $LinesInfo
 }
 Function Add-ChoiceItem {
 <#
